@@ -84,7 +84,7 @@ define inline_script displayPracWords
 	
 	
 	def displayWord():
-		string = strA + " " +strB
+		string = strA + "                         " + strB
 		my_canvas = canvas()
 		my_canvas.text(string)
 		my_canvas.show()
