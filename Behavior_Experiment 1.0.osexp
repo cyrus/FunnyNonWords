@@ -26,7 +26,7 @@ set font_size 18
 set font_italic no
 set font_family mono
 set font_bold no
-set experiment_path "/home/bob/Desktop"
+set experiment_path "/home/bob/GitHub/FunnyNonWords"
 set disable_garbage_collection yes
 set description "The main experiment item"
 set coordinates uniform
@@ -45,7 +45,7 @@ define inline_script createFeedback
 	num = var.subject_nr
 	header = ['stringA', 'stringB', 'itemNum', 'type','choice']
 	format_string = "{:<10}{:<10}{:<10}{:<10}{:<10}"
-	location = '/home/bob/Desktop/Result/feedback' + str(num) + '.txt'
+	location = '/home/bob/GitHub/FunnyNonWords/Files/DATA/participant' + str(num) + 'DATA.txt'
 	
 	
 	with open(location, 'a') as file:
@@ -84,7 +84,7 @@ define inline_script displayPracWords
 	
 	
 	def displayWord():
-		string = strA + "                         " + strB
+		string = strA + "				" + strB
 		my_canvas = canvas()
 		my_canvas.text(string)
 		my_canvas.show()
@@ -114,45 +114,50 @@ define inline_script displayWords
 	strB = var.stringB
 	inum = var.itemNumber
 	typpe = var.type
-	format_string = "{:<10}{:<10}{:<10}{:<10}{:<10}"
+	format_string = "{:<10}{:<10}{:<10}{:<10}{:<10}{:<10}"
 	###################
 	
-	def getInput():
+	#main
+	displayWord()
+	#####
+	
+	#functions
+	def getInput(): #gets input from keyboard | k[0] = (right or left), k[1] = (timestamp)  
 		my_keyboard = keyboard()
 		k = my_keyboard.get_key(keylist=[u'left', u'right'])
 		return k
-	
-	
-	def writeResults(choice):
-		result = [strA, strB, inum, typpe, choice]
+		
+	def toEEG(signal): #This is were a signal would be sent to the eeg in later version
+		print("Signal sent: " + signal)
+		
+	def writeResults(choice): #Writes all data to .../DATA/participant' + str(num) + 'DATA.txt' 
+		result = [strA, strB, inum, typpe, choice[0], choice[1]]
 		with open(location, 'a') as file:
 			file.write(format_string.format(*result))
 			file.write('\n')
 	
-	
-	def displayWord():
-		string = strA + " " +strB
+	def displayWord():#Display canvas and calls all other functions
+		string = strA + "				" +strB
 		my_canvas = canvas()
 		my_canvas.text(string)
 		my_canvas.show()
+		toEEG(str(inum) + "has started")
 		key = getInput()
 		my_canvas.clear()
-		print(key)
 		if key[0] == u'left':
 			my_canvas.text(strA)
-			writeResults('left')  
-		else: 
+		else:
 			my_canvas.text(strB)
-			writeResults('right')
+		writeResults(key)
 		my_canvas.show()
+		toEEG(str(inum) + "has ended")
 		t.sleep(.5)
-	
-	displayWord()
+	##########
 	__end__
 	set _prepare ""
 
 define loop expLoop
-	set source_file "/home/bob/Desktop/CSV/stim[subGroup]/participant[subject_nr].csv"
+	set source_file "/home/bob/GitHub/FunnyNonWords/Files/CSV/stim[subGroup]/participant[subject_nr].csv"
 	set source file
 	set repeat 1
 	set order sequential
@@ -244,23 +249,23 @@ define loop pracLoop
 	set break_if never
 	setcycle 0 stringA cat
 	setcycle 0 stringB dog
-	setcycle 0 itemNumber 1.0
+	setcycle 0 itemNumber 1
 	setcycle 0 type prac
 	setcycle 1 stringA jim
 	setcycle 1 stringB lap
-	setcycle 1 itemNumber 2.0
+	setcycle 1 itemNumber 2
 	setcycle 1 type prac
 	setcycle 2 stringA stuff
 	setcycle 2 stringB kind
-	setcycle 2 itemNumber 3.0
+	setcycle 2 itemNumber 3
 	setcycle 2 type prac
 	setcycle 3 stringA lip
 	setcycle 3 stringB sat
-	setcycle 3 itemNumber 4.0
+	setcycle 3 itemNumber 4
 	setcycle 3 type prac
 	setcycle 4 stringA "stick "
 	setcycle 4 stringB floating
-	setcycle 4 itemNumber 5.0
+	setcycle 4 itemNumber 5
 	setcycle 4 type prac
 	run displayPracWords
 

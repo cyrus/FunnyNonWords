@@ -1,7 +1,0 @@
-stringA   stringB   itemNum   type      choice    
-incleas   sanybon   25        original  right     
-telcout   jusessa   20        original  left      
-lifinta   raddreg   6         original  right     
-slannet   probble   44        original  left      
-arthrol   moutlem   24        original  right     
-materal   wiligna   30        original  left      
