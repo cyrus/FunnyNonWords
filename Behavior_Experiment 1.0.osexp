@@ -84,7 +84,7 @@ define inline_script displayPracWords
 	
 	
 	def displayWord():
-		string = strA + "				" + strB
+		string = strA + "           " + strB
 		my_canvas = canvas()
 		my_canvas.text(string)
 		my_canvas.show()
@@ -137,7 +137,7 @@ define inline_script displayWords
 			file.write('\n')
 	
 	def displayWord():#Display canvas and calls all other functions
-		string = strA + "				" +strB
+		string = strA + "            " +strB
 		my_canvas = canvas()
 		my_canvas.text(string)
 		my_canvas.show()
@@ -150,7 +150,7 @@ define inline_script displayWords
 			my_canvas.text(strB)
 		writeResults(key)
 		my_canvas.show()
-		toEEG(str(inum) + "has ended")
+		toEEG(str(inum) + " has ended")
 		t.sleep(.5)
 	##########
 	__end__
