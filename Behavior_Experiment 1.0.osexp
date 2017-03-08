@@ -37,16 +37,37 @@ set canvas_backend legacy
 set bidi no
 set background black
 
+define form_text_input Directory
+	set timeout infinite
+	set spacing 10
+	set rows "1;1;6"
+	set only_render no
+	set margins "50;50;50;50"
+	set form_var dire
+	set form_title Title
+	__form_question__
+	Where is your NonFunnyWords file? 
+	(Ex:/home/bob/GitHub/)
+	__end__
+	set cols 1
+	set _theme gray
+	widget 0 0 1 1 label text="[form_title]"
+	widget 0 1 1 1 label center=no text="[form_question]"
+	widget 0 2 1 1 text_input focus=yes return_accepts=yes stub="" var="[form_var]"
+
+
 define inline_script createFeedback
 	set description "Executes Python code"
 	___run__
 	import csv
-	
+	import os
 	num = var.subject_nr
+	dirPath = var.experiment_path
+	group = var.subGroup
 	header = ['stringA', 'stringB', 'itemNum', 'type','choice']
 	format_string = "{:<10}{:<10}{:<10}{:<10}{:<10}"
-	location = '/home/bob/GitHub/FunnyNonWords/Files/DATA/participant' + str(num) + 'DATA.txt'
-	
+	location = dirPath + '/Files/DATA/participant' + str(num) + 'DATA.txt'
+	var.path = dirPath + '/Files/CSV/stim' + group + '/participant' + str(num) + '.csv'
 	
 	with open(location, 'a') as file:
 		file.write(format_string.format(*header))
@@ -85,7 +106,6 @@ define inline_script displayPracWords
 	
 	def displayWord():
 		string = strA + "           " + strB
-		my_canvas = canvas()
 		my_canvas.text(string)
 		my_canvas.show()
 		key = getInput()
@@ -98,6 +118,9 @@ define inline_script displayPracWords
 		my_canvas.show()
 		t.sleep(.5)
 	
+	
+	my_canvas = canvas()
+	my_canvas.set_font('mono', 30 )
 	displayWord()
 	__end__
 	set _prepare ""
@@ -118,6 +141,8 @@ define inline_script displayWords
 	###################
 	
 	#main
+	my_canvas = canvas()
+	my_canvas.set_font('mono', 30 )
 	displayWord()
 	#####
 	
@@ -138,7 +163,6 @@ define inline_script displayWords
 	
 	def displayWord():#Display canvas and calls all other functions
 		string = strA + "            " +strB
-		my_canvas = canvas()
 		my_canvas.text(string)
 		my_canvas.show()
 		toEEG(str(inum) + "has started")
@@ -157,7 +181,7 @@ define inline_script displayWords
 	set _prepare ""
 
 define loop expLoop
-	set source_file "/home/bob/GitHub/FunnyNonWords/Files/CSV/stim[subGroup]/participant[subject_nr].csv"
+	set source_file "[path]"
 	set source file
 	set repeat 1
 	set order sequential
