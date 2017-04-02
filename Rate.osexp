@@ -82,6 +82,7 @@ define inline_script createFeedbackPick
 	num = var.subject_nr
 	dirPath = var.experiment_path
 	group = var.subGroup
+	var.timekeeper = 0
 	header = ['stringA', 'stringB', 'itemNum', 'type','choice']
 	format_string = "{:<10}{:<10}{:<10}{:<10}{:<10}"
 	location = dirPath + '/Files/DATA/Pick/participant' + str(num) + 'DATA.txt'
@@ -101,8 +102,10 @@ define inline_script createFeedbackRate
 	num = var.subject_nr
 	dirPath = var.experiment_path
 	group = var.subGroup
-	header = ['stringA', 'rate']
-	format_string = "{:<10}{:<10}"
+	var.timekeeper = 0
+	
+	header = ['stringA', 'rate', 'time']
+	format_string = "{:<10}{:<10}{:<10}"
 	location = dirPath + '/Files/DATA/Rate/participant' + str(num) + 'DATA.txt'
 	var.path = dirPath + '/Files/CSV/Rate/stim' + group + '/participant' + str(num) + '.csv'
 	
@@ -113,6 +116,56 @@ define inline_script createFeedbackRate
 	set _prepare ""
 
 define inline_script displayPracWords
+	set description "Executes Python code"
+	___run__
+	
+	import string
+	import csv
+	import time as t
+	
+	#Get all CSV colloms
+	strA = var.stringA
+	strB = var.stringB
+	inum = var.itemNumber
+	typpe = var.type
+	format_string = "{:<10}{:<10}{:<10}{:<10}{:<10}"
+	###################
+	
+	def getInput():
+		my_keyboard = keyboard()
+		k = my_keyboard.get_key(keylist=[u'left', u'right'])
+		return k
+	
+	
+	def writeResults(choice):
+		result = [strA, strB, inum, typpe, choice]
+		with open(location, 'a') as file:
+			file.write(format_string.format(*result))
+			file.write('\n')
+	
+	
+	def displayWord():
+		string = strA + "           " + strB
+		my_canvas.text(string)
+		my_canvas.show()
+		key = getInput()
+		my_canvas.clear()
+		print(key)
+		if key[0] == u'left':
+			my_canvas.text(strA)
+		else: 
+			my_canvas.text(strB)
+		my_canvas.show()
+		t.sleep(.5)
+	
+	
+	my_canvas = canvas()
+	my_canvas.set_font('mono', 30 )
+	displayWord()
+	__end__
+	set _prepare ""
+
+define inline_script displayPracWords_1
 	set description "Executes Python code"
 	___run__
 	
@@ -193,10 +246,67 @@ define inline_script displayWords
 		print("Signal sent: " + signal)
 		
 	def writeResults(choice): #Writes all data to .../DATA/participant' + str(num) + 'DATA.txt' 
-		result = [strA, strB, inum, typpe, choice[0], choice[1]]
+		result = [strA, strB, inum, typpe, choice[0], (choice[1]-var.timekeeper)]
 		with open(location, 'a') as file:
 			file.write(format_string.format(*result))
 			file.write('\n')
+			var.timekeeper = choice[1]
+	
+	def displayWord():#Display canvas and calls all other functions
+		string = strA + "            " +strB
+		my_canvas.text(string)
+		my_canvas.show()
+		toEEG(str(inum) + "has started")
+		key = getInput()
+		my_canvas.clear()
+		if key[0] == u'left':
+			my_canvas.text(strA)
+		else:
+			my_canvas.text(strB)
+		writeResults(key)
+		my_canvas.show()
+		toEEG(str(inum) + " has ended")
+		t.sleep(.5)
+	##########
+	__end__
+	set _prepare ""
+
+define inline_script displayWords_1
+	set description "Executes Python code"
+	___run__
+	import string
+	import csv
+	import time as t
+	
+	#Get all CSV colloms
+	strA = var.stringA
+	strB = var.stringB
+	inum = var.itemNumber
+	typpe = var.type
+	format_string = "{:<10}{:<10}{:<10}{:<10}{:<10}{:<10}"
+	###################
+	
+	#main
+	my_canvas = canvas()
+	my_canvas.set_font('mono', 30 )
+	displayWord()
+	#####
+	
+	#functions
+	def getInput(): #gets input from keyboard | k[0] = (right or left), k[1] = (timestamp)  
+		my_keyboard = keyboard()
+		k = my_keyboard.get_key(keylist=[u'left', u'right'])
+		return k
+		
+	def toEEG(signal): #This is were a signal would be sent to the eeg in later version
+		print("Signal sent: " + signal)
+		
+	def writeResults(choice): #Writes all data to .../DATA/participant' + str(num) + 'DATA.txt' 
+		result = [strA, strB, inum, typpe, choice[0], (choice[1]-var.timekeeper)]
+		with open(location, 'a') as file:
+			file.write(format_string.format(*result))
+			file.write('\n')
+			var.timekeeper = choice[1]
 	
 	def displayWord():#Display canvas and calls all other functions
 		string = strA + "            " +strB
@@ -230,13 +340,28 @@ define loop expLoop_Pick
 	setcycle 0 empty_column ""
 	run displayWords
 
+define loop expLoop_Pick_1
+	set source_file "[path]"
+	set source file
+	set repeat 1
+	set order sequential
+	set description "Repeatedly runs another item"
+	set cycles 1
+	set continuous no
+	set break_if_on_first yes
+	set break_if never
+	setcycle 0 empty_column ""
+	run displayWords_1
+
 define sequence experiment
 	set flush_keyboard yes
 	set description "Runs a number of items in sequence"
-	run subjectGroup always
-	run TestingFeatures always
 	run subjectCorrectBlock "[subject_nr] > 0 and [subject_nr] <= 60"
-	run subjectNumError "[subject_nr] < 0 and [subject_nr] > 60"
+	run subjectNumError "[subject_nr] <= 0 or [subject_nr] > 60"
+
+define sequence gap
+	set flush_keyboard yes
+	set description "Runs a number of items in sequence"
 
 define notepad getting_started
 	__note__
@@ -257,10 +382,30 @@ define sketchpad instuctAgain
 	set description "Displays stimuli"
 	draw textline center=1 color=white font_bold=no font_family=mono font_italic=no font_size=20 html=yes show_if=always text="Instuctions:<br />Choice the funniest word by<br />press either the left or right arrow key.<br />________________________ <br /><br />The real trial is about to start. <br />There wil be 60 sets of word.<br />" x=0 y=-32 z_index=0
 
+define sketchpad instuctAgain_1
+	set duration keypress
+	set description "Displays stimuli"
+	draw textline center=1 color=white font_bold=no font_family=mono font_italic=no font_size=20 html=yes show_if=always text="Instuctions:<br />Choice the funniest word by<br />press either the left or right arrow key.<br />________________________ <br /><br />The real trial is about to start. <br />There wil be 60 sets of word.<br />" x=0 y=-32 z_index=0
+
 define sketchpad instuctions
 	set duration keypress
 	set description "Displays stimuli"
 	draw textline center=1 color=white font_bold=no font_family=mono font_italic=no font_size=20 html=yes show_if=always text="Instuctions:<br />Choice the funniest word by<br />press either the left or right arrow key. <br />______________________________<br /><br />You will have 5 pactice words.<br />Afterwards a message will notify you <br />the real trial is starting.<br />" x=0 y=0 z_index=0
+
+define sketchpad instuctions_1
+	set duration keypress
+	set description "Displays stimuli"
+	draw textline center=1 color=white font_bold=no font_family=mono font_italic=no font_size=20 html=yes show_if=always text="Instuctions:<br />Choice the funniest word by<br />press either the left or right arrow key. <br />______________________________<br /><br />You will have 5 pactice words.<br />Afterwards a message will notify you <br />the real trial is starting.<br />" x=0 y=0 z_index=0
+
+define inline_script new_inline_script
+	set description "Executes Python code"
+	___run__
+	
+	mycanvas = canvas()
+	mycanvas.text(var.toRun)
+	mycanvas.show()
+	__end__
+	set _prepare ""
 
 define keyboard_response new_keyboard_response
 	set timeout infinite
@@ -294,11 +439,38 @@ define sequence new_sequence_2
 	set flush_keyboard yes
 	set description "Runs a number of items in sequence"
 
+define sequence new_sequence_3
+	set flush_keyboard yes
+	set description "Runs a number of items in sequence"
+
 define sketchpad new_sketchpad
 	set duration keypress
 	set description "Displays stimuli"
 
+define sketchpad new_sketchpad_1
+	set duration keypress
+	set description "Displays stimuli"
+	draw textline center=1 color=white font_bold=no font_family=mono font_italic=no font_size=18 html=yes show_if=always text="Running [toRun]" x=0 y=0 z_index=0
+
+define sketchpad new_sketchpad_2
+	set duration keypress
+	set description "Displays stimuli"
+	draw textline center=1 color=white font_bold=no font_family=mono font_italic=no font_size=18 html=yes show_if=always text="[toRun]" x=0 y=0 z_index=0
+
+define sketchpad new_sketchpad_3
+	set duration keypress
+	set description "Displays stimuli"
+	draw textline center=1 color=white font_bold=no font_family=mono font_italic=no font_size=18 html=yes show_if=always text="[subGroup] [toRun]" x=0 y=0 z_index=0
+
 define sequence pickTrial
+	set flush_keyboard yes
+	set description "Runs a number of items in sequence"
+	run instuctions_1 always
+	run pracTrail_1 always
+	run instuctAgain_1 always
+	run realTrail_1 always
+
+define sequence pickTrial_1_1
 	set flush_keyboard yes
 	set description "Runs a number of items in sequence"
 	run instuctions always
@@ -338,6 +510,38 @@ define loop pracLoop_Pick
 	setcycle 4 type prac
 	run displayPracWords
 
+define loop pracLoop_Pick_1
+	set source_file ""
+	set source table
+	set repeat 1
+	set order random
+	set description "Repeatedly runs another item"
+	set cycles 5
+	set continuous no
+	set break_if_on_first yes
+	set break_if never
+	setcycle 0 stringA cat
+	setcycle 0 stringB dog
+	setcycle 0 itemNumber 1
+	setcycle 0 type prac
+	setcycle 1 stringA jim
+	setcycle 1 stringB lap
+	setcycle 1 itemNumber 2
+	setcycle 1 type prac
+	setcycle 2 stringA stuff
+	setcycle 2 stringB kind
+	setcycle 2 itemNumber 3
+	setcycle 2 type prac
+	setcycle 3 stringA lip
+	setcycle 3 stringB sat
+	setcycle 3 itemNumber 4
+	setcycle 3 type prac
+	setcycle 4 stringA "stick "
+	setcycle 4 stringB floating
+	setcycle 4 itemNumber 5
+	setcycle 4 type prac
+	run displayPracWords_1
+
 define loop pracLoop_Rate
 	set source_file "[path]"
 	set source file
@@ -359,6 +563,11 @@ define sequence pracTrail
 	set description "Runs a number of items in sequence"
 	run pracLoop_Pick always
 
+define sequence pracTrail_1
+	set flush_keyboard yes
+	set description "Runs a number of items in sequence"
+	run pracLoop_Pick_1 always
+
 define sequence pracTrial
 	set flush_keyboard yes
 	set description "Runs a number of items in sequence"
@@ -374,6 +583,11 @@ define sequence realTrail
 	set description "Runs a number of items in sequence"
 	run expLoop_Pick always
 
+define sequence realTrail_1
+	set flush_keyboard yes
+	set description "Runs a number of items in sequence"
+	run expLoop_Pick_1 always
+
 define inline_script sliderScipt
 	set description "Executes Python code"
 	___run__
@@ -387,13 +601,14 @@ define inline_script sliderScipt
 	slider_x = -slider_w/2
 	slider_y = -slider_h/2
 	strA = var.stringA
-	format_string = "{:<10}{:<10}"
+	format_string = "{:<10}{:<10}{:<10}"
 	
-	def writeResults(r):
-		result = [strA, r]
+	def writeResults(r, time):
+		result = [strA, r, time-var.timekeeper]
 		with open(location, 'a') as file:
 			file.write(format_string.format(*result))
 			file.write('\n')
+			var.timekeeper= time
 	
 	while True:
 	
@@ -405,7 +620,6 @@ define inline_script sliderScipt
 		my_canvas.clear()
 		# Draw some text (this can be anything)
 		my_canvas.text(strA, y=slider_y-100) 
-		my_canvas.text("Next", y=slider_y+100) 
 		# Draw the slider frame
 		my_canvas.rect(slider_x, slider_y, slider_w, slider_h)
 		# Draw the slider fill
@@ -413,25 +627,45 @@ define inline_script sliderScipt
 		# Draw the mouse cursor
 		my_canvas.arrow(x+5, y+10, x, y)
 		my_canvas.show()
-	
-		# Poll the mouse for buttonclicks
 		button, position, timestamp = my_mouse.get_click()
+	
+		rate = 100.0*slider_fill/slider_w
+		writeResults(rate, timestamp)
+		# Poll the mouse for buttonclicks
+		
 		if button is not None:
+			my_canvas.clear()
 			break
 	
+	button = None
+	while True:
+		pos, time = my_mouse.get_pos()
+		x, y = pos
+		print (str(x) + ", " + str(y)) 
+		my_canvas.clear()
+		my_canvas.text("Next")
+		my_canvas.rect(-25, -10, 50, 20, fill=False)
+		my_canvas.arrow(x+5, y+10, x, y)
+		my_canvas.show()
+		b = my_mouse.get_click()
+		button = b[0]
+		p = b[1]
+		
+		if button is not None:
+			if x >= -23 and x <= 30 and y >= -12 and y <= 8:
+				my_canvas.clear()
+				break
+	
 	# Set the slider response as an experimental variable
-	rate = 100.0*slider_fill/slider_w
-	writeResults(rate)
 	__end__
 	set _prepare ""
 
 define sequence subjectCorrectBlock
 	set flush_keyboard yes
 	set description "Runs a number of items in sequence"
-	run createFeedbackPick always
-	run pickTrial "[toRun] == Pick or [toRun] == Both"
+	run subjectGroup always
 	run createFeedbackRate always
-	run rateTrial "[toRun] == Rate or [toRun] == Both"
+	run rateTrial always
 
 define form_multiple_choice subjectGroup
 	set timeout infinite

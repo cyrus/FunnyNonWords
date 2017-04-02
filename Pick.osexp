@@ -1,0 +1,290 @@
+---
+API: 2
+OpenSesame: 3.1.6
+Platform: posix
+---
+set width 1024
+set uniform_coordinates yes
+set title "New experiment"
+set subject_parity even
+set subject_nr 0
+set start experiment
+set sound_sample_size -16
+set sound_freq 48000
+set sound_channels 2
+set sound_buf_size 1024
+set sampler_backend legacy
+set round_decimals 2
+set mouse_backend legacy
+set keyboard_backend legacy
+set height 768
+set fullscreen no
+set form_clicks no
+set foreground white
+set font_underline no
+set font_size 18
+set font_italic no
+set font_family mono
+set font_bold no
+set experiment_path "/home/bob/GitHub/FunnyNonWords"
+set disable_garbage_collection yes
+set description "The main experiment item"
+set coordinates uniform
+set compensation 0
+set color_backend legacy
+set clock_backend legacy
+set canvas_backend legacy
+set bidi no
+set background black
+
+define inline_script createFeedbackPick
+	set description "Executes Python code"
+	___run__
+	import csv
+	import os
+	num = var.subject_nr
+	dirPath = var.experiment_path
+	group = var.subGroup
+	var.timekeeper = 0
+	header = ['stringA', 'stringB', 'itemNum', 'type','choice','time','trail']
+	format_string = "{:<10}{:<10}{:<10}{:<10}{:<10}{:<10}{:<10}"
+	location = dirPath + '/Files/DATA/Pick/participant' + str(num) + 'DATA.txt'
+	var.path = dirPath + '/Files/CSV/Pick/stim' + group + '/participant' + str(num) + '.csv'
+	
+	with open(location, 'a') as file:
+		file.write(format_string.format(*header))
+		file.write('\n')
+	__end__
+	set _prepare ""
+
+define inline_script displayPracWords
+	set description "Executes Python code"
+	___run__
+	import string
+	import csv
+	import time as t
+	
+	#Get all CSV colloms
+	strA = var.stringA
+	strB = var.stringB
+	inum = var.itemNumber
+	typpe = var.type
+	format_string = "{:<10}{:<10}{:<10}{:<10}{:<10}{:<10}{:<10}"
+	trial = 'pick'
+	
+	###################
+	
+	#functions
+	def getInput(): #gets input from keyboard | k[0] = (right or left), k[1] = (timestamp)  
+		my_keyboard = keyboard()
+		k = my_keyboard.get_key(keylist=[u'left', u'right'])
+		return k
+		
+	def toEEG(signal): #This is were a signal would be sent to the eeg in later version
+		print("Signal sent: " + signal)
+		
+	def writeResults(choice): #Writes all data to .../DATA/participant' + str(num) + 'DATA.txt' 
+		result = [strA, strB, inum, typpe, choice[0], (choice[1]-var.timekeeper), trial ]
+		with open(location, 'a') as file:
+			file.write(format_string.format(*result))
+			file.write('\n')
+			var.timekeeper = choice[1]
+	
+	def displayWord():#Display canvas and calls all other functions
+		string = strA + "            " +strB
+		my_canvas.text(string)
+		my_canvas.show()
+		toEEG(str(inum) + "has started")
+		key = getInput()
+		my_canvas.clear()
+		if key[0] == u'left':
+			my_canvas.text(strA)
+		else:
+			my_canvas.text(strB)
+		writeResults(key)
+		my_canvas.show()
+		toEEG(str(inum) + " has ended")
+		t.sleep(.5)
+	##########
+	
+	
+	#main
+	my_canvas = canvas()
+	my_canvas.set_font('mono', 30 )
+	displayWord()
+	#####
+	__end__
+	set _prepare ""
+
+define inline_script displayWords
+	set description "Executes Python code"
+	___run__
+	import string
+	import csv
+	import time as t
+	
+	#Get all CSV colloms
+	strA = var.stringA
+	strB = var.stringB
+	inum = var.itemNumber
+	typpe = var.type
+	format_string = "{:<10}{:<10}{:<10}{:<10}{:<10}{:<10}{:<10}"
+	trial = 'pick'
+	
+	###################
+	
+	#functions
+	def getInput(): #gets input from keyboard | k[0] = (right or left), k[1] = (timestamp)  
+		my_keyboard = keyboard()
+		k = my_keyboard.get_key(keylist=[u'left', u'right'])
+		return k
+		
+	def toEEG(signal): #This is were a signal would be sent to the eeg in later version
+		print("Signal sent: " + signal)
+		
+	def writeResults(choice): #Writes all data to .../DATA/participant' + str(num) + 'DATA.txt' 
+		result = [strA, strB, inum, typpe, choice[0], (choice[1]-var.timekeeper), trial ]
+		with open(location, 'a') as file:
+			file.write(format_string.format(*result))
+			file.write('\n')
+			var.timekeeper = choice[1]
+	
+	def displayWord():#Display canvas and calls all other functions
+		string = strA + "            " +strB
+		my_canvas.text(string)
+		my_canvas.show()
+		toEEG(str(inum) + "has started")
+		key = getInput()
+		my_canvas.clear()
+		if key[0] == u'left':
+			my_canvas.text(strA)
+		else:
+			my_canvas.text(strB)
+		writeResults(key)
+		my_canvas.show()
+		toEEG(str(inum) + " has ended")
+		t.sleep(.5)
+	##########
+	
+	
+	#main
+	my_canvas = canvas()
+	my_canvas.set_font('mono', 30 )
+	displayWord()
+	#####
+	__end__
+	set _prepare ""
+
+define loop expLoop_Pick
+	set source_file "[path]"
+	set source file
+	set repeat 1
+	set order sequential
+	set description "Repeatedly runs another item"
+	set cycles 1
+	set continuous no
+	set break_if_on_first yes
+	set break_if never
+	setcycle 0 empty_column ""
+	run displayWords
+
+define sequence experiment
+	set flush_keyboard yes
+	set description "Runs a number of items in sequence"
+	run subjectCorrectBlock "[subject_nr] > 0 and [subject_nr] <= 60"
+	run subjectNumError "[subject_nr] <= 0 or [subject_nr] > 60"
+
+define sketchpad instuctAgain
+	set duration keypress
+	set description "Displays stimuli"
+	draw textline center=1 color=white font_bold=no font_family=mono font_italic=no font_size=20 html=yes show_if=always text="Instuctions:<br />Choice the funniest word by<br />press either the left or right arrow key.<br />________________________ <br /><br />The real trial is about to start. <br />There wil be 60 sets of word.<br />" x=0 y=-32 z_index=0
+
+define sketchpad instuctions
+	set duration keypress
+	set description "Displays stimuli"
+	draw textline center=1 color=white font_bold=no font_family=mono font_italic=no font_size=20 html=yes show_if=always text="Instuctions:<br />Choice the funniest word by<br />press either the left or right arrow key. <br />______________________________<br /><br />You will have 5 pactice words.<br />Afterwards a message will notify you <br />the real trial is starting.<br />" x=0 y=0 z_index=0
+
+define sequence pickTrial
+	set flush_keyboard yes
+	set description "Runs a number of items in sequence"
+	run instuctions always
+	run pracTrail always
+	run instuctAgain always
+	run realTrail always
+
+define loop pracLoop_Pick
+	set source_file ""
+	set source table
+	set repeat 1
+	set order random
+	set description "Repeatedly runs another item"
+	set cycles 5
+	set continuous no
+	set break_if_on_first yes
+	set break_if never
+	setcycle 0 stringA cat
+	setcycle 0 stringB dog
+	setcycle 0 itemNumber 1
+	setcycle 0 type prac
+	setcycle 1 stringA jim
+	setcycle 1 stringB lap
+	setcycle 1 itemNumber 2
+	setcycle 1 type prac
+	setcycle 2 stringA stuff
+	setcycle 2 stringB kind
+	setcycle 2 itemNumber 3
+	setcycle 2 type prac
+	setcycle 3 stringA lip
+	setcycle 3 stringB sat
+	setcycle 3 itemNumber 4
+	setcycle 3 type prac
+	setcycle 4 stringA "stick "
+	setcycle 4 stringB floating
+	setcycle 4 itemNumber 5
+	setcycle 4 type prac
+	run displayPracWords
+
+define sequence pracTrail
+	set flush_keyboard yes
+	set description "Runs a number of items in sequence"
+	run pracLoop_Pick always
+
+define sequence realTrail
+	set flush_keyboard yes
+	set description "Runs a number of items in sequence"
+	run expLoop_Pick always
+
+define sequence subjectCorrectBlock
+	set flush_keyboard yes
+	set description "Runs a number of items in sequence"
+	run subjectGroup always
+	run createFeedbackPick always
+	run pickTrial always
+
+define form_multiple_choice subjectGroup
+	set timeout infinite
+	set spacing 10
+	set question "What is the subject group?"
+	__options__
+	A
+	B
+	__end__
+	set margins "50;50;50;50"
+	set form_var subGroup
+	set form_title "Subject Group"
+	set description "A simple multiple choice item"
+	set button_text Ok
+	set allow_multiple no
+	set advance_immediately yes
+	set _theme gray
+
+define sequence subjectNumError
+	set flush_keyboard yes
+	set description "Runs a number of items in sequence"
+	run wrongSubjectNum always
+
+define sketchpad wrongSubjectNum
+	set duration keypress
+	set description "Displays stimuli"
+	draw textline center=1 color=white font_bold=no font_family=mono font_italic=no font_size=18 html=yes show_if=always text="Your entered: [subject_nr] <br />This is not a valid subject number!<br />Please enter a number from 1 to 60<br />Press ESC then Q ;D" x=0 y=-96 z_index=0
+
