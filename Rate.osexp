@@ -609,9 +609,14 @@ define inline_script sliderScipt
 			file.write(format_string.format(*result))
 			file.write('\n')
 			var.timekeeper= time
+	def toEEG(isBegin): #A 1 will be the parameriter for begin and a 0 for end
+		ser = s.Serial(USBinfo)
+		ser.write(isBegin)
+		ser.close
+		
 	
 	while True:
-	
+		toEEG(1)#begin trigger
 		# Determine the slider fill based on the mouse position
 		pos, time = my_mouse.get_pos()
 		x, y = pos
@@ -635,6 +640,7 @@ define inline_script sliderScipt
 		
 		if button is not None:
 			my_canvas.clear()
+			toEEG(0)#end trigger
 			break
 	
 	button = None

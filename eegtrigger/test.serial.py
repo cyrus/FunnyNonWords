@@ -1,6 +1,8 @@
 #test serial port access
 import serial
 import time
+
+
 ser = serial.Serial('/dev/cu.usbserial-ALHCTCQ',57600)
 print("Connected to: " + ser.name)
 # Each number needs to be in hex

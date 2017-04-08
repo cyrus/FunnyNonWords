@@ -122,6 +122,8 @@ define inline_script displayWords
 	import string
 	import csv
 	import time as t
+	import serial as s
+	import time as t
 	
 	#Get all CSV colloms
 	strA = var.stringA
@@ -131,6 +133,8 @@ define inline_script displayWords
 	format_string = "{:<10}{:<10}{:<10}{:<10}{:<10}{:<10}{:<10}"
 	trial = 'pick'
 	
+	##############IMPORTANT##############\/\/\/\/\/\/\/\/
+	USBinfo = ('/dev/cu.usbserial-ALHCTCQ',57600) #needs to be changed to virtual serial port on experiemnt computer
 	###################
 	
 	#functions
@@ -139,8 +143,10 @@ define inline_script displayWords
 		k = my_keyboard.get_key(keylist=[u'left', u'right'])
 		return k
 		
-	def toEEG(signal): #This is were a signal would be sent to the eeg in later version
-		print("Signal sent: " + signal)
+	def toEEG(isBegin): #A 1 will be the parameriter for begin and a 0 for end
+		ser = s.Serial(USBinfo)
+		ser.write(isBegin)
+		ser.close
 		
 	def writeResults(choice): #Writes all data to .../DATA/participant' + str(num) + 'DATA.txt' 
 		result = [strA, strB, inum, typpe, choice[0], (choice[1]-var.timekeeper), trial ]
@@ -153,9 +159,10 @@ define inline_script displayWords
 		string = strA + "            " +strB
 		my_canvas.text(string)
 		my_canvas.show()
-		toEEG(str(inum) + "has started")
+		toEEG(1)
 		key = getInput()
 		my_canvas.clear()
+		toEEG(0)
 		if key[0] == u'left':
 			my_canvas.text(strA)
 		else:
