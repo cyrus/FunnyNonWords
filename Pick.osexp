@@ -49,7 +49,7 @@ define inline_script createFeedbackPick
 	header = ['stringA', 'stringB', 'itemNum', 'type','choice','time','trail']
 	format_string = "{:<10}{:<10}{:<10}{:<10}{:<10}{:<10}{:<10}"
 	location = dirPath + '/Files/DATA/Pick/participant' + str(num) + 'DATA.txt'
-	var.path = dirPath + '/Files/CSV/Pick/stim' + group + '/participant' + str(num) + '.csv'
+	var.path = dirPath + '/Files/CSV/stims' + group + '/pairs/participant' + str(num) + '.csv'
 	
 	with open(location, 'a') as file:
 		file.write(format_string.format(*header))
@@ -94,7 +94,7 @@ define inline_script displayPracWords
 		string = strA + "            " +strB
 		my_canvas.text(string)
 		my_canvas.show()
-		toEEG(str(inum) + "has started")
+		#toEEG()
 		key = getInput()
 		my_canvas.clear()
 		if key[0] == u'left':
@@ -103,7 +103,7 @@ define inline_script displayPracWords
 			my_canvas.text(strB)
 		writeResults(key)
 		my_canvas.show()
-		toEEG(str(inum) + " has ended")
+		#toEEG(str(inum) + " has ended")
 		t.sleep(.5)
 	##########
 	
@@ -159,17 +159,16 @@ define inline_script displayWords
 		string = strA + "            " +strB
 		my_canvas.text(string)
 		my_canvas.show()
-		toEEG(1)
+		#toEEG(1)
 		key = getInput()
 		my_canvas.clear()
-		toEEG(0)
+		#toEEG(0)
 		if key[0] == u'left':
 			my_canvas.text(strA)
 		else:
 			my_canvas.text(strB)
 		writeResults(key)
 		my_canvas.show()
-		toEEG(str(inum) + " has ended")
 		t.sleep(.5)
 	##########
 	

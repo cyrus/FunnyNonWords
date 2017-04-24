@@ -107,7 +107,7 @@ define inline_script createFeedbackRate
 	header = ['stringA', 'rate', 'time']
 	format_string = "{:<10}{:<10}{:<10}"
 	location = dirPath + '/Files/DATA/Rate/participant' + str(num) + 'DATA.txt'
-	var.path = dirPath + '/Files/CSV/Rate/stim' + group + '/participant' + str(num) + '.csv'
+	var.path = dirPath + '/Files/CSV/stims' + group + '/rate/participant' + str(num) + '.csv'
 	
 	with open(location, 'a') as file:
 		file.write(format_string.format(*header))
@@ -600,7 +600,7 @@ define inline_script sliderScipt
 	slider_h = 10
 	slider_x = -slider_w/2
 	slider_y = -slider_h/2
-	strA = var.stringA
+	strA = var.String
 	format_string = "{:<10}{:<10}{:<10}"
 	
 	def writeResults(r, time):
@@ -616,7 +616,7 @@ define inline_script sliderScipt
 		
 	
 	while True:
-		toEEG(1)#begin trigger
+		#toEEG(1)#begin trigger
 		# Determine the slider fill based on the mouse position
 		pos, time = my_mouse.get_pos()
 		x, y = pos
@@ -640,7 +640,7 @@ define inline_script sliderScipt
 		
 		if button is not None:
 			my_canvas.clear()
-			toEEG(0)#end trigger
+			#toEEG(0)#end trigger
 			break
 	
 	button = None
