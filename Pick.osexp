@@ -42,6 +42,10 @@ define inline_script createFeedbackPick
 	___run__
 	import csv
 	import os
+	import serial as s
+	##############IMPORTANT##############\/\/\/\/\/\/\/\/
+	USBinfo = []#needs to be changed to virtual serial port on experiemnt computer
+	###################
 	num = var.subject_nr
 	dirPath = var.experiment_path
 	group = var.subGroup
@@ -54,6 +58,9 @@ define inline_script createFeedbackPick
 		file.write(format_string.format(*header))
 		file.write('\n')
 	var.timekeeper=var.time_createFeedbackPick
+	var.ser = s.Serial('/dev/cu.usbserial-ALHCTCQ',57600)
+	print(var.ser)
+	var.stimCounter = 1
 	__end__
 	set _prepare ""
 
@@ -114,7 +121,6 @@ define inline_script displayWords
 	import string
 	import csv
 	import time as t
-	import serial as s
 	import time as t
 	#Get all CSV colloms
 	strA = var.stringA
@@ -123,18 +129,14 @@ define inline_script displayWords
 	typpe = var.type
 	format_string = "{:<10}{:<10}{:<10}{:<10}{:<10}{:<10}{:<10}"
 	trial = 'pick'
-	##############IMPORTANT##############\/\/\/\/\/\/\/\/
-	USBinfo = ('/dev/cu.usbserial-ALHCTCQ',57600) #needs to be changed to virtual serial port on experiemnt computer
-	###################
 	#functions
 	def getInput(): #gets input from keyboard | k[0] = (right or left), k[1] = (timestamp)
 		my_keyboard = keyboard()
 		k = my_keyboard.get_key(keylist=[u'left', u'right'])
 		return k
-	def toEEG(isBegin): #A 1 will be the parameriter for begin and a 0 for end
-		ser = s.Serial(USBinfo)
-		ser.write(isBegin)
-		ser.close
+	def toEEG(itemNumber): #A 1 will be the parameriter for begin and a 0 for end
+		toSend = bytearray([itemNumber])
+		var.ser.write(toSend)
 	def writeResults(choice): #Writes all data to .../DATA/participant' + str(num) + 'DATA.txt'
 		result = [strA, strB, inum, typpe, choice[0], (choice[1]-var.timekeeper), trial ]
 		with open(location, 'a') as file:
@@ -145,10 +147,10 @@ define inline_script displayWords
 		string = strA + "            " +strB
 		my_canvas.text(string)
 		my_canvas.show()
-		#toEEG(1)
+		toEEG(var.stimCounter)
 		key = getInput()
 		my_canvas.clear()
-		#toEEG(0)
+		toEEG(0)
 		if key[0] == u'left':
 			my_canvas.text(strA)
 		else:
@@ -156,6 +158,7 @@ define inline_script displayWords
 		writeResults(key)
 		my_canvas.show()
 		t.sleep(.5)
+		var.stimCounter += 1
 	##########
 	#main
 	my_canvas = canvas()
@@ -163,6 +166,11 @@ define inline_script displayWords
 	displayWord()
 	#####
 	__end__
+	set _prepare ""
+
+define inline_script ending
+	set description "Executes Python code"
+	set _run ""
 	set _prepare ""
 
 define loop expLoop_Pick
@@ -258,6 +266,7 @@ define sequence subjectCorrectBlock
 	run subjectGroup always
 	run createFeedbackPick always
 	run pickTrial always
+	run ending always
 
 define form_multiple_choice subjectGroup
 	set timeout infinite

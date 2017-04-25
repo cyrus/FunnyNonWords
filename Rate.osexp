@@ -98,10 +98,12 @@ define inline_script createFeedbackRate
 	___run__
 	import csv
 	import os
+	import serial as s
 	num = var.subject_nr
 	dirPath = var.experiment_path
 	group = var.subGroup
 	var.timekeeper = 0
+	var.stimCounter = 1
 	header = ['stringA', 'rate', 'time']
 	format_string = "{:<10}{:<10}{:<10}"
 	location = dirPath + '/Files/DATA/Rate/participant' + str(num) + 'DATA.txt'
@@ -109,7 +111,7 @@ define inline_script createFeedbackRate
 	with open(location, 'a') as file:
 		file.write(format_string.format(*header))
 		file.write('\n')
-	var.timekeeper=var.time_createFeedbackRate
+	var.ser = s.Serial('/dev/cu.usbserial-ALHCTCQ',57600)
 	__end__
 	set _prepare ""
 
@@ -219,7 +221,7 @@ define inline_script displayWords
 		k = my_keyboard.get_key(keylist=[u'left', u'right'])
 		return k
 	def toEEG(signal): #This is were a signal would be sent to the eeg in later version
-		print("Signal sent: " + signal)
+	    #do nothing
 	def writeResults(choice): #Writes all data to .../DATA/participant' + str(num) + 'DATA.txt'
 		result = [strA, strB, inum, typpe, choice[0], (choice[1]-var.timekeeper)]
 		with open(location, 'a') as file:
@@ -230,7 +232,7 @@ define inline_script displayWords
 		string = strA + "            " +strB
 		my_canvas.text(string)
 		my_canvas.show()
-		toEEG(str(inum) + "has started")
+		toEEG(inum)
 		key = getInput()
 		my_canvas.clear()
 		if key[0] == u'left':
@@ -239,7 +241,7 @@ define inline_script displayWords
 			my_canvas.text(strB)
 		writeResults(key)
 		my_canvas.show()
-		toEEG(str(inum) + " has ended")
+		toEEG(0)
 		t.sleep(.5)
 	##########
 	__end__
@@ -295,6 +297,11 @@ define inline_script displayWords_1
 	__end__
 	set _prepare ""
 
+define inline_script ending
+	set description "Executes Python code"
+	set _run ""
+	set _prepare ""
+
 define loop expLoop_Pick
 	set source_file "[path]"
 	set source file
@@ -344,6 +351,13 @@ define notepad getting_started
 	Have fun with OpenSesame!
 	__end__
 	set description "A simple notepad to document your experiment. This plug-in does nothing."
+
+define inline_script init_time
+	set description "Executes Python code"
+	___run__
+	var.timekeeper=var.time_pracTrial
+	__end__
+	set _prepare ""
 
 define inline_script initialize_time
 	set description "Executes Python code"
@@ -543,6 +557,7 @@ define sequence pracTrail_1
 define sequence pracTrial
 	set flush_keyboard yes
 	set description "Runs a number of items in sequence"
+	run init_time always
 	run pracLoop_Rate always
 
 define sequence rateTrial
@@ -579,12 +594,11 @@ define inline_script sliderScipt
 			file.write(format_string.format(*result))
 			file.write('\n')
 			var.timekeeper = time
-	def toEEG(isBegin): #A 1 will be the parameriter for begin and a 0 for end
-		ser = s.Serial(USBinfo)
-		ser.write(isBegin)
-		ser.close
-	while True:
-		#toEEG(1)#begin trigger
+	def toEEG(inum): #A 1 will be the parameriter for begin and a 0 for end
+		toSend = bytearray([inum])
+		var.ser.write(toSend)
+	toEEG(var.stimCounter)#begin trigger
+	while True:	
 		# Determine the slider fill based on the mouse position
 		pos, time = my_mouse.get_pos()
 		x, y = pos
@@ -604,10 +618,11 @@ define inline_script sliderScipt
 		# Poll the mouse for buttonclicks
 		if button is not None:
 			my_canvas.clear()
-			#toEEG(0)#end trigger
+			toEEG(0)#end trigger
 			writeResults(rate, timestamp)
 			break
 	button = None
+	var.stimCounter += 1
 	while True:
 		pos, time = my_mouse.get_pos()
 		x, y = pos
@@ -634,6 +649,7 @@ define sequence subjectCorrectBlock
 	run subjectGroup always
 	run createFeedbackRate always
 	run rateTrial always
+	run ending always
 
 define form_multiple_choice subjectGroup
 	set timeout infinite
