@@ -609,6 +609,7 @@ define inline_script sliderScipt
 			file.write(format_string.format(*result))
 			file.write('\n')
 			var.timekeeper= time
+
 	def toEEG(isBegin): #A 1 will be the parameriter for begin and a 0 for end
 		ser = s.Serial(USBinfo)
 		ser.write(isBegin)
@@ -635,12 +636,12 @@ define inline_script sliderScipt
 		button, position, timestamp = my_mouse.get_click()
 
 		rate = 100.0*slider_fill/slider_w
-		writeResults(rate, timestamp)
 		# Poll the mouse for buttonclicks
 
 		if button is not None:
 			my_canvas.clear()
 			#toEEG(0)#end trigger
+			writeResults(rate, timestamp)
 			break
 
 	button = None
