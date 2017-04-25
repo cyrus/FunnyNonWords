@@ -26,7 +26,7 @@ set font_size 18
 set font_italic no
 set font_family mono
 set font_bold no
-set experiment_path "/home/bob/GitHub/FunnyNonWords"
+set experiment_path "/Users/cyrus/src/FunnyNonWords"
 set disable_garbage_collection yes
 set description "The main experiment item"
 set coordinates uniform
@@ -50,10 +50,10 @@ define inline_script createFeedbackPick
 	format_string = "{:<10}{:<10}{:<10}{:<10}{:<10}{:<10}{:<10}"
 	location = dirPath + '/Files/DATA/Pick/participant' + str(num) + 'DATA.txt'
 	var.path = dirPath + '/Files/CSV/stims' + group + '/pairs/participant' + str(num) + '.csv'
-	
 	with open(location, 'a') as file:
 		file.write(format_string.format(*header))
 		file.write('\n')
+	var.timekeeper=var.time_createFeedbackPick
 	__end__
 	set _prepare ""
 
@@ -63,7 +63,6 @@ define inline_script displayPracWords
 	import string
 	import csv
 	import time as t
-	
 	#Get all CSV colloms
 	strA = var.stringA
 	strB = var.stringB
@@ -71,25 +70,20 @@ define inline_script displayPracWords
 	typpe = var.type
 	format_string = "{:<10}{:<10}{:<10}{:<10}{:<10}{:<10}{:<10}"
 	trial = 'pick'
-	
 	###################
-	
 	#functions
-	def getInput(): #gets input from keyboard | k[0] = (right or left), k[1] = (timestamp)  
+	def getInput(): #gets input from keyboard | k[0] = (right or left), k[1] = (timestamp)
 		my_keyboard = keyboard()
 		k = my_keyboard.get_key(keylist=[u'left', u'right'])
 		return k
-		
 	def toEEG(signal): #This is were a signal would be sent to the eeg in later version
 		print("Signal sent: " + signal)
-		
-	def writeResults(choice): #Writes all data to .../DATA/participant' + str(num) + 'DATA.txt' 
+	def writeResults(choice): #Writes all data to .../DATA/participant' + str(num) + 'DATA.txt'
 		result = [strA, strB, inum, typpe, choice[0], (choice[1]-var.timekeeper), trial ]
 		with open(location, 'a') as file:
 			file.write(format_string.format(*result))
 			file.write('\n')
 			var.timekeeper = choice[1]
-	
 	def displayWord():#Display canvas and calls all other functions
 		string = strA + "            " +strB
 		my_canvas.text(string)
@@ -106,8 +100,6 @@ define inline_script displayPracWords
 		#toEEG(str(inum) + " has ended")
 		t.sleep(.5)
 	##########
-	
-	
 	#main
 	my_canvas = canvas()
 	my_canvas.set_font('mono', 30 )
@@ -124,7 +116,6 @@ define inline_script displayWords
 	import time as t
 	import serial as s
 	import time as t
-	
 	#Get all CSV colloms
 	strA = var.stringA
 	strB = var.stringB
@@ -132,29 +123,24 @@ define inline_script displayWords
 	typpe = var.type
 	format_string = "{:<10}{:<10}{:<10}{:<10}{:<10}{:<10}{:<10}"
 	trial = 'pick'
-	
 	##############IMPORTANT##############\/\/\/\/\/\/\/\/
 	USBinfo = ('/dev/cu.usbserial-ALHCTCQ',57600) #needs to be changed to virtual serial port on experiemnt computer
 	###################
-	
 	#functions
-	def getInput(): #gets input from keyboard | k[0] = (right or left), k[1] = (timestamp)  
+	def getInput(): #gets input from keyboard | k[0] = (right or left), k[1] = (timestamp)
 		my_keyboard = keyboard()
 		k = my_keyboard.get_key(keylist=[u'left', u'right'])
 		return k
-		
 	def toEEG(isBegin): #A 1 will be the parameriter for begin and a 0 for end
 		ser = s.Serial(USBinfo)
 		ser.write(isBegin)
 		ser.close
-		
-	def writeResults(choice): #Writes all data to .../DATA/participant' + str(num) + 'DATA.txt' 
+	def writeResults(choice): #Writes all data to .../DATA/participant' + str(num) + 'DATA.txt'
 		result = [strA, strB, inum, typpe, choice[0], (choice[1]-var.timekeeper), trial ]
 		with open(location, 'a') as file:
 			file.write(format_string.format(*result))
 			file.write('\n')
 			var.timekeeper = choice[1]
-	
 	def displayWord():#Display canvas and calls all other functions
 		string = strA + "            " +strB
 		my_canvas.text(string)
@@ -171,8 +157,6 @@ define inline_script displayWords
 		my_canvas.show()
 		t.sleep(.5)
 	##########
-	
-	
 	#main
 	my_canvas = canvas()
 	my_canvas.set_font('mono', 30 )
@@ -199,6 +183,13 @@ define sequence experiment
 	set description "Runs a number of items in sequence"
 	run subjectCorrectBlock "[subject_nr] > 0 and [subject_nr] <= 60"
 	run subjectNumError "[subject_nr] <= 0 or [subject_nr] > 60"
+
+define inline_script init_time
+	set description "Executes Python code"
+	___run__
+	var.timekeeper=var.time_pracTrail
+	__end__
+	set _prepare ""
 
 define sketchpad instuctAgain
 	set duration keypress
@@ -253,6 +244,7 @@ define loop pracLoop_Pick
 define sequence pracTrail
 	set flush_keyboard yes
 	set description "Runs a number of items in sequence"
+	run init_time always
 	run pracLoop_Pick always
 
 define sequence realTrail

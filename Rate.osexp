@@ -26,7 +26,7 @@ set font_size 18
 set font_italic no
 set font_family mono
 set font_bold no
-set experiment_path "/home/bob/GitHub/FunnyNonWords"
+set experiment_path "/Users/cyrus/src/FunnyNonWords"
 set disable_garbage_collection yes
 set description "The main experiment item"
 set coordinates uniform
@@ -87,7 +87,6 @@ define inline_script createFeedbackPick
 	format_string = "{:<10}{:<10}{:<10}{:<10}{:<10}"
 	location = dirPath + '/Files/DATA/Pick/participant' + str(num) + 'DATA.txt'
 	var.path = dirPath + '/Files/CSV/Pick/stim' + group + '/participant' + str(num) + '.csv'
-
 	with open(location, 'a') as file:
 		file.write(format_string.format(*header))
 		file.write('\n')
@@ -103,26 +102,23 @@ define inline_script createFeedbackRate
 	dirPath = var.experiment_path
 	group = var.subGroup
 	var.timekeeper = 0
-
 	header = ['stringA', 'rate', 'time']
 	format_string = "{:<10}{:<10}{:<10}"
 	location = dirPath + '/Files/DATA/Rate/participant' + str(num) + 'DATA.txt'
 	var.path = dirPath + '/Files/CSV/stims' + group + '/rate/participant' + str(num) + '.csv'
-
 	with open(location, 'a') as file:
 		file.write(format_string.format(*header))
 		file.write('\n')
+	var.timekeeper=var.time_createFeedbackRate
 	__end__
 	set _prepare ""
 
 define inline_script displayPracWords
 	set description "Executes Python code"
 	___run__
-
 	import string
 	import csv
 	import time as t
-
 	#Get all CSV colloms
 	strA = var.stringA
 	strB = var.stringB
@@ -130,20 +126,15 @@ define inline_script displayPracWords
 	typpe = var.type
 	format_string = "{:<10}{:<10}{:<10}{:<10}{:<10}"
 	###################
-
 	def getInput():
 		my_keyboard = keyboard()
 		k = my_keyboard.get_key(keylist=[u'left', u'right'])
 		return k
-
-
 	def writeResults(choice):
 		result = [strA, strB, inum, typpe, choice]
 		with open(location, 'a') as file:
 			file.write(format_string.format(*result))
 			file.write('\n')
-
-
 	def displayWord():
 		string = strA + "           " + strB
 		my_canvas.text(string)
@@ -157,8 +148,6 @@ define inline_script displayPracWords
 			my_canvas.text(strB)
 		my_canvas.show()
 		t.sleep(.5)
-
-
 	my_canvas = canvas()
 	my_canvas.set_font('mono', 30 )
 	displayWord()
@@ -168,11 +157,9 @@ define inline_script displayPracWords
 define inline_script displayPracWords_1
 	set description "Executes Python code"
 	___run__
-
 	import string
 	import csv
 	import time as t
-
 	#Get all CSV colloms
 	strA = var.stringA
 	strB = var.stringB
@@ -180,20 +167,15 @@ define inline_script displayPracWords_1
 	typpe = var.type
 	format_string = "{:<10}{:<10}{:<10}{:<10}{:<10}"
 	###################
-
 	def getInput():
 		my_keyboard = keyboard()
 		k = my_keyboard.get_key(keylist=[u'left', u'right'])
 		return k
-
-
 	def writeResults(choice):
 		result = [strA, strB, inum, typpe, choice]
 		with open(location, 'a') as file:
 			file.write(format_string.format(*result))
 			file.write('\n')
-
-
 	def displayWord():
 		string = strA + "           " + strB
 		my_canvas.text(string)
@@ -207,8 +189,6 @@ define inline_script displayPracWords_1
 			my_canvas.text(strB)
 		my_canvas.show()
 		t.sleep(.5)
-
-
 	my_canvas = canvas()
 	my_canvas.set_font('mono', 30 )
 	displayWord()
@@ -221,7 +201,6 @@ define inline_script displayWords
 	import string
 	import csv
 	import time as t
-
 	#Get all CSV colloms
 	strA = var.stringA
 	strB = var.stringB
@@ -229,29 +208,24 @@ define inline_script displayWords
 	typpe = var.type
 	format_string = "{:<10}{:<10}{:<10}{:<10}{:<10}{:<10}"
 	###################
-
 	#main
 	my_canvas = canvas()
 	my_canvas.set_font('mono', 30 )
 	displayWord()
 	#####
-
 	#functions
 	def getInput(): #gets input from keyboard | k[0] = (right or left), k[1] = (timestamp)
 		my_keyboard = keyboard()
 		k = my_keyboard.get_key(keylist=[u'left', u'right'])
 		return k
-
 	def toEEG(signal): #This is were a signal would be sent to the eeg in later version
 		print("Signal sent: " + signal)
-
 	def writeResults(choice): #Writes all data to .../DATA/participant' + str(num) + 'DATA.txt'
 		result = [strA, strB, inum, typpe, choice[0], (choice[1]-var.timekeeper)]
 		with open(location, 'a') as file:
 			file.write(format_string.format(*result))
 			file.write('\n')
 			var.timekeeper = choice[1]
-
 	def displayWord():#Display canvas and calls all other functions
 		string = strA + "            " +strB
 		my_canvas.text(string)
@@ -277,7 +251,6 @@ define inline_script displayWords_1
 	import string
 	import csv
 	import time as t
-
 	#Get all CSV colloms
 	strA = var.stringA
 	strB = var.stringB
@@ -285,29 +258,24 @@ define inline_script displayWords_1
 	typpe = var.type
 	format_string = "{:<10}{:<10}{:<10}{:<10}{:<10}{:<10}"
 	###################
-
 	#main
 	my_canvas = canvas()
 	my_canvas.set_font('mono', 30 )
 	displayWord()
 	#####
-
 	#functions
 	def getInput(): #gets input from keyboard | k[0] = (right or left), k[1] = (timestamp)
 		my_keyboard = keyboard()
 		k = my_keyboard.get_key(keylist=[u'left', u'right'])
 		return k
-
 	def toEEG(signal): #This is were a signal would be sent to the eeg in later version
 		print("Signal sent: " + signal)
-
 	def writeResults(choice): #Writes all data to .../DATA/participant' + str(num) + 'DATA.txt'
 		result = [strA, strB, inum, typpe, choice[0], (choice[1]-var.timekeeper)]
 		with open(location, 'a') as file:
 			file.write(format_string.format(*result))
 			file.write('\n')
 			var.timekeeper = choice[1]
-
 	def displayWord():#Display canvas and calls all other functions
 		string = strA + "            " +strB
 		my_canvas.text(string)
@@ -377,6 +345,11 @@ define notepad getting_started
 	__end__
 	set description "A simple notepad to document your experiment. This plug-in does nothing."
 
+define inline_script initialize_time
+	set description "Executes Python code"
+	set _run ""
+	set _prepare ""
+
 define sketchpad instuctAgain
 	set duration keypress
 	set description "Displays stimuli"
@@ -400,7 +373,6 @@ define sketchpad instuctions_1
 define inline_script new_inline_script
 	set description "Executes Python code"
 	___run__
-
 	mycanvas = canvas()
 	mycanvas.text(var.toRun)
 	mycanvas.show()
@@ -593,7 +565,6 @@ define inline_script sliderScipt
 	___run__
 	my_canvas = canvas()
 	my_mouse = mouse(timeout=20)
-
 	# Set slider dimensions. This assumes that 0,0 is the display center, which is
 	# the default in OpenSesame >= 3.
 	slider_w = 500
@@ -602,27 +573,22 @@ define inline_script sliderScipt
 	slider_y = -slider_h/2
 	strA = var.String
 	format_string = "{:<10}{:<10}{:<10}"
-
 	def writeResults(r, time):
 		result = [strA, r, time-var.timekeeper]
 		with open(location, 'a') as file:
 			file.write(format_string.format(*result))
 			file.write('\n')
-			var.timekeeper= time
-
+			var.timekeeper = time
 	def toEEG(isBegin): #A 1 will be the parameriter for begin and a 0 for end
 		ser = s.Serial(USBinfo)
 		ser.write(isBegin)
 		ser.close
-
-
 	while True:
 		#toEEG(1)#begin trigger
 		# Determine the slider fill based on the mouse position
 		pos, time = my_mouse.get_pos()
 		x, y = pos
 		slider_fill = min(slider_w, max(0, x-slider_x))
-
 		my_canvas.clear()
 		# Draw some text (this can be anything)
 		my_canvas.text(strA, y=slider_y-100)
@@ -634,16 +600,13 @@ define inline_script sliderScipt
 		my_canvas.arrow(x+5, y+10, x, y)
 		my_canvas.show()
 		button, position, timestamp = my_mouse.get_click()
-
 		rate = 100.0*slider_fill/slider_w
 		# Poll the mouse for buttonclicks
-
 		if button is not None:
 			my_canvas.clear()
 			#toEEG(0)#end trigger
 			writeResults(rate, timestamp)
 			break
-
 	button = None
 	while True:
 		pos, time = my_mouse.get_pos()
@@ -657,12 +620,10 @@ define inline_script sliderScipt
 		b = my_mouse.get_click()
 		button = b[0]
 		p = b[1]
-
 		if button is not None:
 			if x >= -23 and x <= 30 and y >= -12 and y <= 8:
 				my_canvas.clear()
 				break
-
 	# Set the slider response as an experimental variable
 	__end__
 	set _prepare ""
